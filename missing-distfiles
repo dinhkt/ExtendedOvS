@@ -1,0 +1,6 @@
+datapath/linux/.cache.mk
+datapath/linux/flow.o.ur-safe
+datapath/linux/meter.o.ur-safe
+datapath/linux/nf_conncount.o.ur-safe
+datapath/linux/stt.o.ur-safe
+datapath/linux/vxlan.o.ur-safe
