@@ -23,8 +23,8 @@ You can read for more information here: https://github.com/openvswitch/ovs/blob/
 What we do here:
 ------------
 Extend OvS function to support anomaly detection in our project, which is about detecting DDoS attack in SDN network.
-This work includes:<br/>
-- Monitor several traffic features<br/>
-- Detect the anomalies by anomaly detection algorithm (Local Outlier Factor/Local Outlier Probabilities)<br/>
-- Create a new OpenFlow message to notify SDN Controller<br/>
+This work includes:
 
+- Monitor several traffic features
+- Detect the anomalies by anomaly detection algorithm (Local Outlier Factor/Local Outlier Probabilities)  
+- Create a new OpenFlow message to notify SDN Controller  
