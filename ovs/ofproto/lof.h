@@ -2,8 +2,8 @@
 #define __lof_h__
 
 
-#define DATANUM 500
-#define KNN 15
+#define DATANUM 300
+#define KNN 6
 
 typedef struct neighbor
 {

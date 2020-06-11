@@ -79,7 +79,6 @@
 #define PORT 1
 
 /*added global variable*/
-bool reported = false;
 
 VLOG_DEFINE_THIS_MODULE(ofproto);
 
@@ -538,7 +537,8 @@ ofproto_create(const char *datapath_name, const char *datapath_type,
     {
         ofproto->Data[i]=(data_t *)malloc(sizeof(data_t));
     }  
-
+    ofproto->reported=false;
+    ofproto->lof_threshold=0;
     /*other defaults*/
     ofproto->ofproto_class = class;
     ofproto->name = xstrdup(datapath_name);
@@ -1801,7 +1801,7 @@ void abnormal_detect(struct ofproto *p)
     struct timeval start,end;
     float current_traf,current_flow;
 
-    float lof_threshold=0;
+
 
     long now_recorded_n_flow;
     long now_recorded_n_bytes;
@@ -1812,6 +1812,7 @@ void abnormal_detect(struct ofproto *p)
     
     if(current_time - p->last_time>=CYCLE)
     {  
+      //trigger_send_anomaly_detection(p);  
       //get traffic through port PORT and number of new flow
       struct ofport *port;
       port = ofproto_get_port(p,PORT);
@@ -1876,18 +1877,21 @@ void abnormal_detect(struct ofproto *p)
                 
           lrd(p->Data,p->data_counter);
           //find threshold
-          int temp;
+          float temp;
           for(int i=0;i<p->data_counter;i++)
           {
-            temp=1.5*calc_LOF(p->Data,p->data_counter,p->Data[i]);
-            if(lof_threshold<temp)
-              lof_threshold=temp;
+            temp=1.0*calc_LOF(p->Data,p->data_counter,p->Data[i]);
+            if(p->lof_threshold<temp)
+              p->lof_threshold=temp;
+            fp= fopen("/home/tuyen/ovslog/debug.log","a+");
+            fprintf(fp,"%f,%f\n",p->lof_threshold,temp);
+            fclose(fp);
           }
           //gettimeofday(&end, NULL);
           fp=fopen("/home/tuyen/ovslog/nor_training.log","a+");
           for(int i=0;i<p->data_counter;i++)
           {
-              fprintf(fp,"%f,%f\n",p->Data[i]->n_flow_norm,p->Data[i]->traffic_norm);
+              fprintf(fp,"%f,%f,%f\n",p->Data[i]->n_flow_norm,p->Data[i]->traffic_norm,p->lof_threshold);
           }
           fclose(fp);
         }
@@ -1901,18 +1905,14 @@ void abnormal_detect(struct ofproto *p)
 
           p->lof_status=calc_LOF(p->Data,p->data_counter,p->state);
 
-
-          // if(p->lof_status>lof_threshold) 
-          //   p->lof_status=1;
-          // else p->lof_status=0;
-          if (p->lof_status > lof_threshold && reported == false)
+          if (p->lof_status > p->lof_threshold && p->reported == false)
               {
                   trigger_send_anomaly_detection(p);
-                    reported = true;
+                    p->reported = true;
               }
 
           fp= fopen("/home/tuyen/ovslog/debug.log","a+");
-          fprintf(fp,"%f,%f,%f\n",p->state->traffic_norm,p->state->n_flow_norm,p->lof_status);
+          fprintf(fp,"%f,%f,%f,%f\n",p->state->traffic_norm,p->state->n_flow_norm,p->lof_status,p->lof_threshold);
           fclose(fp);
 
           gettimeofday(&end, NULL);
@@ -2023,7 +2023,8 @@ ofproto_run(struct ofproto *p)
         p->change_seq = new_seq;
     }
     connmgr_run(p->connmgr, handle_openflow);
-    abnormal_detect(p);    
+    abnormal_detect(p);
+    //trigger_send_anomaly_detection(p);    
     return error;
 }
 

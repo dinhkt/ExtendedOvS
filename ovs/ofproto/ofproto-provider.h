@@ -158,6 +158,8 @@ struct ofproto {
     float flow_sigma;   
     float traffic_mu;
     float traffic_sigma;
+    bool reported;
+    float lof_threshold;
 };
 
 void ofproto_init_tables(struct ofproto *, int n_tables);
